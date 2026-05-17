@@ -39,7 +39,7 @@ nav.scrolled{background:rgba(245,240,232,.95);backdrop-filter:blur(16px);-webkit
 .nav-pill a:hover{color:#fff}
 .nav-r{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
 
-/* auth states */
+
 .nav-auth-out{display:flex;align-items:center;gap:.6rem}
 .btn-no{border:1.5px solid var(--earth);color:var(--earth);padding:.46rem 1.1rem;border-radius:var(--r-pill);font-size:.8rem;font-weight:600;cursor:pointer;background:none;font-family:var(--fb);transition:background .2s,color .2s}
 .btn-no:hover{background:var(--earth);color:#fff}
@@ -243,7 +243,7 @@ nav.scrolled{background:rgba(245,240,232,.95);backdrop-filter:blur(16px);-webkit
 .pts-track{height:7px;background:var(--cream2);border-radius:999px;overflow:hidden}
 .pts-fill{height:100%;background:linear-gradient(to right,var(--green),var(--green3));border-radius:999px;width:0;transition:width 1.6s .5s ease-out}
 .pts-next{font-size:.76rem;color:var(--mid);margin-top:.65rem;font-weight:300}
-/* lock overlay */
+
 .pts-lock{position:absolute;inset:0;background:rgba(245,240,232,.88);border-radius:var(--r-xl);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;backdrop-filter:blur(3px);z-index:2}
 .pts-lock p{font-size:.86rem;color:var(--mid);text-align:center;max-width:200px;line-height:1.5;font-weight:300}
 .vgrid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
@@ -422,16 +422,16 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
 </head>
 <body>
 
-<!-- TOAST -->
+
 <div class="toast" id="toast"></div>
 
-<!-- ══ AUTH MODAL ══ -->
+
 <div class="overlay" id="authOverlay">
   <div class="modal" id="authModal">
     <button class="modal-x" onclick="closeAuthModal()">✕</button>
     <div class="modal-logo">Trash<span>E</span></div>
 
-    <!-- LOGIN -->
+    
     <div id="fLogin">
       <h2>Welcome back</h2>
       <p class="sub">Log in to track your points &amp; history</p>
@@ -441,7 +441,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
       <div class="modal-sw">No account? <button onclick="switchAuth('signup')">Sign up free</button></div>
     </div>
 
-    <!-- SIGNUP -->
+    
     <div id="fSignup" style="display:none">
       <h2>Join TrashE</h2>
       <p class="sub">Create your account and start earning</p>
@@ -452,7 +452,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
       <div class="modal-sw">Have an account? <button onclick="switchAuth('login')">Log in</button></div>
     </div>
 
-    <!-- SUCCESS -->
+    
     <div class="modal-ok" id="fOk">
       <div class="tick">✓</div>
       <h3>You're in!</h3>
@@ -461,7 +461,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </div>
 
-<!-- ══ DASHBOARD MODAL ══ -->
+
 <div class="overlay" id="dashOverlay">
   <div class="modal dash-modal" id="dashModal">
     <button class="modal-x" onclick="closeDash()">✕</button>
@@ -490,7 +490,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </div>
 
-<!-- ══ NAV ══ -->
+
 <nav id="nav">
   <a class="nav-logo" href="#hero">Trash<span>E</span></a>
   <ul class="nav-pill">
@@ -534,7 +534,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   <button class="mob-cta" onclick="openAuthModal('signup');closeMob()">Sign Up &amp; Start Earning →</button>
 </div>
 
-<!-- ══ HERO ══ -->
+
 <section id="hero">
   <div class="hero-l">
     <div class="ht"><span class="dot"></span>Smart Recycling — BCU Steamhouse</div>
@@ -590,10 +590,10 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- MARQUEE -->
+
 <div id="mq"><div class="mq-inner" id="mqInner"></div></div>
 
-<!-- QUOTES -->
+
 <section id="quotes" class="sec">
   <div class="si">
     <div class="reveal"><span class="stag">Why It Matters</span><h2 class="stitle">Words that <em>move</em> us</h2><p class="slead">Recycling isn't just a habit — it's a statement. Every piece of waste disposed correctly is a vote for the world you want to live in.</p></div>
@@ -608,7 +608,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- HOW IT WORKS — steps only, no sticky visual -->
+
 <section id="how" class="sec" style="background:var(--white)">
   <div class="si">
     <div class="reveal"><span class="stag">The Process</span><h2 class="stitle">How <em>TrashE</em> works</h2><p class="slead">Smart recycling in four simple steps. Scan, sort, earn, and track — powered by BCU's intelligent bin network.</p></div>
@@ -621,7 +621,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- LIVE MONITOR -->
+
 <section id="monitor">
   <div class="si">
     <div class="reveal"><div class="live-badge"><span class="dot"></span>Real-Time Data</div><h2 class="stitle">Live Bin <em>Monitor</em></h2><p class="slead">Every TrashE bin on campus is connected. Watch fill levels update in real time so bins never overflow.</p></div>
@@ -630,7 +630,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- REWARDS -->
+
 <section id="rewards" class="sec">
   <div class="si">
     <div class="reveal"><span class="stag">Earn &amp; Redeem</span><h2 class="stitle">Real rewards for <em>real</em> recycling</h2><p class="slead">Every correctly disposed item earns you TrashE Points. Collect enough and redeem for coffee, vouchers, and exclusive campus perks.</p></div>
@@ -675,7 +675,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- IMPACT -->
+
 <section id="impact">
   <div class="si">
     <div class="reveal"><span class="stag">Our Collective Footprint</span><h2 class="stitle">The difference <em style="color:var(--green4)">we're</em> making</h2><p class="slead">Every TrashE interaction adds up. Here's the real impact the BCU community is creating together — one scan at a time.</p></div>
@@ -688,7 +688,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- ABOUT -->
+
 <section id="about">
   <div class="si">
     <div class="reveal"><span class="stag">About Us</span><h2 class="stitle">Built at <em>BCU</em>, for BCU</h2></div>
@@ -715,7 +715,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- LOCATIONS -->
+
 <section id="locations">
   <div class="si">
     <div class="reveal"><span class="stag">Find a Bin</span><h2 class="stitle">TrashE <em>Locations</em></h2><p class="slead">Our smart bins are deployed across BCU Steamhouse, with more locations rolling out throughout 2025.</p></div>
@@ -766,7 +766,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- SUPPORT -->
+
 <section id="support">
   <div class="si">
     <div class="reveal"><span class="stag">Help &amp; Support</span><h2 class="stitle">We're here to <em>help</em></h2><p class="slead">Got a question? Can't find your points? Bin not scanning? Our help centre has you covered.</p></div>
@@ -796,7 +796,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- CTA -->
+
 <section id="cta" style="background:var(--cream);padding:5rem 5.5vw">
   <div class="cta-inner reveal">
     <div class="cta-txt">
@@ -811,7 +811,7 @@ footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2
   </div>
 </section>
 
-<!-- FOOTER -->
+
 <footer>
   <div class="ft">
     <div class="ftop">
@@ -936,10 +936,10 @@ async function doLogout() {
 }
 
 const TIERS = [
-  { name:'🌱 Sprout', min:0,    max:499,      next:500,  nextName:'Leaf' },
-  { name:'🍃 Leaf',   min:500,  max:1499,     next:1500, nextName:'Tree' },
-  { name:'🌳 Tree',   min:1500, max:3999,     next:4000, nextName:'Champion' },
-  { name:'🌍 Champion', min:4000, max:Infinity, next:null, nextName:null },
+  { name:'Sprout', min:0,    max:499,      next:500,  nextName:'Leaf' },
+  { name:'Leaf',   min:500,  max:1499,     next:1500, nextName:'Tree' },
+  { name:'Tree',   min:1500, max:3999,     next:4000, nextName:'Champion' },
+  { name:'Champion', min:4000, max:Infinity, next:null, nextName:null },
 ];
 function getTier(pts) { return TIERS.find(t => pts >= t.min && pts <= t.max) || TIERS[0]; }
 
