@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrashE — Smart Bins. Smarter Planet.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#f5f0e8;--cream2:#ede5d4;--cream3:#ddd0b8;--cream4:#c8b898;
+  --green:#2d6a4f;--green2:#40916c;--green3:#52b788;--green4:#95d5b2;
+  --earth:#1e1a14;--earth2:#3b2a18;
+  --gold:#c9963a;--gold2:#e8c07a;
+  --white:#ffffff;--mid:#4a4439;--muted:#8a8070;
+  --red:#dc2626;--amber:#d97706;
+  --r-sm:10px;--r-md:18px;--r-lg:28px;--r-xl:48px;--r-pill:999px;
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'DM Sans',system-ui,sans-serif;
+  --fm:'DM Mono',monospace;
+  --nav:72px;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--cream);color:var(--earth);overflow-x:hidden;line-height:1.6}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--cream)}
+::-webkit-scrollbar-thumb{background:var(--green3);border-radius:999px}
+img{display:block}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:300;height:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 3.5vw;transition:background .4s,box-shadow .4s}
+nav.scrolled{background:rgba(245,240,232,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 1px 0 rgba(0,0,0,.07)}
+.nav-logo{font-family:var(--fd);font-size:1.55rem;font-weight:900;color:var(--green);text-decoration:none;letter-spacing:-.03em;flex-shrink:0}
+.nav-logo span{color:var(--gold)}
+.nav-pill{display:flex;align-items:center;gap:1.4rem;background:var(--earth);border-radius:var(--r-pill);padding:.5rem 1.6rem;list-style:none}
+.nav-pill a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.8rem;font-weight:500;transition:color .2s;white-space:nowrap}
+.nav-pill a:hover{color:#fff}
+.nav-r{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+
+/* auth states */
+.nav-auth-out{display:flex;align-items:center;gap:.6rem}
+.btn-no{border:1.5px solid var(--earth);color:var(--earth);padding:.46rem 1.1rem;border-radius:var(--r-pill);font-size:.8rem;font-weight:600;cursor:pointer;background:none;font-family:var(--fb);transition:background .2s,color .2s}
+.btn-no:hover{background:var(--earth);color:#fff}
+.btn-ns{background:var(--green);color:#fff;padding:.46rem 1.2rem;border-radius:var(--r-pill);font-size:.8rem;font-weight:600;cursor:pointer;border:none;font-family:var(--fb);transition:background .2s}
+.btn-ns:hover{background:var(--green2)}
+.nav-auth-in{display:none;align-items:center;gap:.8rem}
+.nav-pts{display:inline-flex;align-items:center;gap:.4rem;background:rgba(45,106,79,.1);border:1px solid rgba(45,106,79,.25);border-radius:var(--r-pill);padding:.38rem .95rem;font-size:.8rem;font-weight:700;color:var(--green);font-family:var(--fm);cursor:pointer;transition:background .2s}
+.nav-pts:hover{background:rgba(45,106,79,.18)}
+.nav-pts .dot{width:6px;height:6px;background:var(--green3);border-radius:50%;flex-shrink:0;animation:bl 2s ease-in-out infinite}
+.nav-avatar{width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:#fff;cursor:pointer;border:2px solid rgba(255,255,255,.3);position:relative;flex-shrink:0}
+.nav-drop{position:absolute;top:calc(100% + 10px);right:0;background:var(--white);border:1px solid var(--cream3);border-radius:var(--r-md);padding:.5rem;min-width:190px;display:none;z-index:400;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+.nav-avatar:hover .nav-drop,.nav-avatar:focus-within .nav-drop{display:block}
+.nav-drop-email{font-size:.72rem;color:var(--muted);padding:.4rem .85rem;font-family:var(--fm);border-bottom:1px solid var(--cream3);margin-bottom:.3rem;padding-bottom:.7rem}
+.nav-drop a,.nav-drop button{display:block;width:100%;text-align:left;padding:.6rem .85rem;font-size:.83rem;color:var(--mid);border-radius:var(--r-sm);border:none;background:none;cursor:pointer;transition:background .15s,color .15s;font-family:var(--fb);text-decoration:none}
+.nav-drop a:hover,.nav-drop button:hover{background:var(--cream);color:var(--earth)}
+.nav-drop hr{border:none;border-top:1px solid var(--cream3);margin:.3rem 0}
+.nav-drop .logout-btn{color:var(--red)}
+
+.burger{display:none;flex-direction:column;gap:5px;cursor:pointer;border:none;background:none;padding:6px}
+.burger span{display:block;width:24px;height:2px;background:var(--earth);border-radius:2px;transition:all .3s}
+.burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mob-menu{display:none;position:fixed;top:var(--nav);left:0;right:0;z-index:299;background:rgba(245,240,232,.97);backdrop-filter:blur(14px);padding:1.5rem 6vw 2rem;flex-direction:column;border-bottom:1px solid var(--cream3)}
+.mob-menu.open{display:flex}
+.mob-menu a,.mob-menu button{display:block;width:100%;padding:.85rem 0;font-size:1rem;font-weight:500;color:var(--mid);text-decoration:none;border:none;background:none;text-align:left;border-bottom:1px solid var(--cream3);transition:color .2s;cursor:pointer;font-family:var(--fb)}
+.mob-menu a:hover,.mob-menu button:hover{color:var(--green)}
+.mob-menu .mob-cta{border:none;color:var(--green);font-weight:600;margin-top:.5rem}
+
+.overlay{position:fixed;inset:0;z-index:500;background:rgba(30,26,20,.55);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:var(--white);border:1px solid var(--cream3);border-radius:var(--r-xl);padding:2.6rem 2.4rem;width:100%;max-width:420px;position:relative;animation:mIn .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes mIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.modal-x{position:absolute;top:1.2rem;right:1.2rem;background:var(--cream);border:1px solid var(--cream3);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;color:var(--muted);transition:all .2s;line-height:1;font-family:var(--fb)}
+.modal-x:hover{background:var(--cream3);color:var(--earth)}
+.modal-logo{font-family:var(--fd);font-size:1.25rem;font-weight:900;color:var(--green);margin-bottom:.4rem;letter-spacing:-.02em}
+.modal-logo span{color:var(--gold)}
+.modal h2{font-family:var(--fd);font-size:1.75rem;font-weight:900;color:var(--earth);letter-spacing:-.025em;margin-bottom:.25rem}
+.modal .sub{font-size:.85rem;color:var(--muted);margin-bottom:1.8rem;font-weight:300}
+.fg{margin-bottom:1rem}
+.fg label{display:block;font-size:.73rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:.42rem}
+.fg input{width:100%;background:var(--cream);border:1.5px solid var(--cream3);border-radius:var(--r-md);padding:.76rem 1rem;font-size:.9rem;color:var(--earth);font-family:var(--fb);outline:none;transition:border-color .2s}
+.fg input:focus{border-color:var(--green2);background:var(--white)}
+.fg input::placeholder{color:var(--cream4)}
+.fg input.err{border-color:var(--red)}
+.ferr{font-size:.77rem;color:var(--red);margin-top:.35rem;display:none}
+.ferr.show{display:block}
+.btn-submit{width:100%;background:var(--earth);color:#fff;border:none;border-radius:var(--r-pill);padding:.85rem;font-size:.92rem;font-weight:700;cursor:pointer;font-family:var(--fb);transition:background .2s,transform .2s;margin-top:.4rem}
+.btn-submit:hover{background:var(--green);transform:translateY(-1px)}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.modal-sw{text-align:center;margin-top:1.2rem;font-size:.82rem;color:var(--muted)}
+.modal-sw button{background:none;border:none;color:var(--green);font-weight:700;cursor:pointer;font-family:var(--fb);font-size:.82rem}
+.modal-sw button:hover{color:var(--green2)}
+.modal-ok{display:none;flex-direction:column;align-items:center;gap:.9rem;padding:1.5rem 0;text-align:center}
+.modal-ok .tick{width:58px;height:58px;background:rgba(45,106,79,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7rem;border:1px solid rgba(45,106,79,.2)}
+.modal-ok h3{font-family:var(--fd);font-size:1.45rem;color:var(--earth);font-weight:700}
+.modal-ok p{font-size:.85rem;color:var(--muted);max-width:260px;line-height:1.6}
+
+.dash-modal{max-width:520px}
+.dash-head{display:flex;align-items:center;gap:1.1rem;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--cream3)}
+.dash-av{width:54px;height:54px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:1.35rem;font-weight:700;color:#fff;flex-shrink:0;border:2px solid rgba(255,255,255,.3)}
+.dash-info{flex:1;min-width:0}
+.dash-name{font-size:1.05rem;font-weight:600;color:var(--earth);margin-bottom:.14rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-email{font-size:.74rem;color:var(--muted);font-family:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-tier-badge{display:inline-flex;align-items:center;gap:.3rem;background:rgba(45,106,79,.1);border:1px solid rgba(45,106,79,.2);border-radius:var(--r-pill);padding:.2rem .65rem;font-size:.68rem;font-weight:700;color:var(--green);margin-top:.4rem}
+.dash-pts-block{text-align:right;flex-shrink:0}
+.dash-pts-num{font-family:var(--fd);font-size:2.8rem;font-weight:900;color:var(--earth);line-height:1;letter-spacing:-.04em}
+.dash-pts-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:.12rem}
+.dash-bar-wrap{margin-bottom:1.8rem}
+.dash-bar-labels{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);margin-bottom:.4rem}
+.dash-track{height:6px;background:var(--cream2);border-radius:999px;overflow:hidden}
+.dash-fill{height:100%;background:linear-gradient(to right,var(--green),var(--green3));border-radius:999px;transition:width 1.2s ease-out}
+.dash-sec{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.9rem}
+.hist-list{display:flex;flex-direction:column;gap:.6rem;max-height:230px;overflow-y:auto;padding-right:3px}
+.hist-list::-webkit-scrollbar{width:3px}
+.hist-list::-webkit-scrollbar-thumb{background:var(--cream3);border-radius:999px}
+.hist-item{display:flex;align-items:center;gap:.9rem;padding:.85rem 1rem;background:var(--cream);border-radius:var(--r-md);border:1px solid var(--cream3)}
+.hist-ico{width:36px;height:36px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.hist-ico.earn{background:rgba(45,106,79,.1)}
+.hist-ico.spend{background:rgba(201,150,58,.1)}
+.hist-body{flex:1;min-width:0}
+.hist-body p{font-size:.84rem;font-weight:500;color:var(--earth);margin-bottom:.08rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-body span{font-size:.72rem;color:var(--muted);font-family:var(--fm)}
+.hist-pts{font-family:var(--fm);font-size:.84rem;font-weight:700;flex-shrink:0}
+.hist-pts.earn{color:var(--green)}
+.hist-pts.spend{color:var(--amber)}
+.hist-empty{text-align:center;padding:2rem;color:var(--muted);font-size:.85rem}
+.dash-actions{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.6rem}
+.btn-dash-sim{flex:1;background:var(--earth);color:#fff;border:none;border-radius:var(--r-pill);padding:.75rem 1rem;font-size:.85rem;font-weight:600;cursor:pointer;font-family:var(--fb);transition:background .2s}
+.btn-dash-sim:hover{background:var(--green)}
+.btn-dash-out{flex:1;background:transparent;color:var(--mid);border:1.5px solid var(--cream3);border-radius:var(--r-pill);padding:.75rem 1rem;font-size:.85rem;font-weight:500;cursor:pointer;font-family:var(--fb);transition:border-color .2s,color .2s}
+.btn-dash-out:hover{border-color:var(--red);color:var(--red)}
+
+.toast{position:fixed;bottom:1.6rem;left:50%;transform:translateX(-50%) translateY(120%);z-index:600;background:var(--earth);border-radius:var(--r-pill);padding:.7rem 1.4rem;font-size:.84rem;font-weight:500;color:#fff;display:flex;align-items:center;gap:.5rem;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;white-space:nowrap;box-shadow:0 6px 28px rgba(0,0,0,.18)}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.green{background:var(--green)}
+.toast.red{background:var(--red)}
+
+#hero{min-height:100svh;display:grid;grid-template-columns:1fr 1fr;padding-top:var(--nav);overflow:hidden}
+.hero-l{display:flex;flex-direction:column;justify-content:center;padding:5vw 3.5vw 5vw 5vw;border-right:1px solid var(--cream3);position:relative}
+.hero-r{position:relative;overflow:hidden;background:linear-gradient(135deg,#ece3ce 0%,#d8c9a5 40%,#c4b080 100%);display:flex;align-items:center;justify-content:center}
+.hero-r-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 55% 38%,rgba(201,150,58,.22) 0%,transparent 65%),radial-gradient(ellipse at 25% 75%,rgba(82,183,136,.15) 0%,transparent 50%)}
+.hero-sphere-wrap{position:relative;z-index:2;animation:sphereFloat 8s ease-in-out infinite}
+@keyframes sphereFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-22px) rotate(1.5deg)}}
+.ht{display:inline-flex;align-items:center;gap:.55rem;border:1.5px solid rgba(30,26,20,.3);border-radius:var(--r-pill);padding:.38rem 1rem;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--earth);width:fit-content;margin-bottom:1.8rem;opacity:0;animation:fu .5s .1s forwards}
+.ht .dot{width:7px;height:7px;background:var(--green3);border-radius:50%;flex-shrink:0;animation:bl 2s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.25}}
+.hdivider{width:100%;height:1px;background:var(--cream3);margin-bottom:1.6rem;opacity:0;animation:fu .5s .15s forwards}
+.h1{font-family:var(--fd);font-size:clamp(3rem,5.2vw,6rem);font-weight:900;line-height:.97;letter-spacing:-.04em;color:var(--earth);opacity:0;animation:fu .6s .25s forwards}
+.h1 em{font-style:italic;color:var(--green)}
+.hdesc{margin-top:1.8rem;font-size:.82rem;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);line-height:1.8;max-width:400px;border-top:1px solid var(--cream3);padding-top:1.4rem;opacity:0;animation:fu .5s .45s forwards}
+.hbtns{margin-top:1.8rem;display:flex;gap:.75rem;flex-wrap:wrap;opacity:0;animation:fu .5s .6s forwards}
+.btn-s{background:var(--earth);color:#fff;padding:.82rem 1.9rem;border-radius:var(--r-pill);font-size:.88rem;font-weight:600;display:inline-flex;align-items:center;gap:.4rem;transition:background .2s,transform .2s;text-decoration:none;cursor:pointer;border:none;font-family:var(--fb)}
+.btn-s:hover{background:var(--green);transform:translateY(-2px)}
+.btn-g{background:transparent;color:var(--earth);padding:.82rem 1.7rem;border-radius:var(--r-pill);border:1.5px solid var(--cream3);font-size:.88rem;font-weight:500;display:inline-flex;align-items:center;gap:.4rem;transition:border-color .2s,transform .2s;text-decoration:none}
+.btn-g:hover{border-color:var(--green3);transform:translateY(-2px)}
+.hstats{display:flex;gap:2.5rem;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--cream3);opacity:0;animation:fu .5s .75s forwards;flex-wrap:wrap}
+.hs-num{font-family:var(--fd);font-size:2.2rem;font-weight:900;color:var(--green);line-height:1}
+.hs-lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:.15rem}
+.hero-scroll{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.45rem;opacity:0;animation:fu .5s 1s forwards}
+.scroll-bar{width:1px;height:36px;background:linear-gradient(to bottom,transparent,var(--green3));animation:sa 2s ease-in-out infinite}
+@keyframes sa{0%,100%{opacity:.3;transform:scaleY(.8)}50%{opacity:1;transform:scaleY(1)}}
+.scroll-lbl{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.hero-r-lbl{position:absolute;bottom:2.2rem;right:2.2rem;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.3);font-weight:500}
+@keyframes fu{to{opacity:1;transform:translateY(0)}}
+
+#mq{background:var(--earth);height:62px;overflow:hidden;display:flex;align-items:center}
+.mq-inner{display:flex;animation:mqr 35s linear infinite;width:max-content}
+.mq-inner:hover{animation-play-state:paused}
+.mq-item{display:inline-flex;align-items:center;gap:2rem;padding:0 2rem;white-space:nowrap;flex-shrink:0}
+.mq-text{font-family:var(--fd);font-style:italic;font-size:1rem;color:var(--gold2);letter-spacing:.01em}
+.mq-sep{width:5px;height:5px;background:var(--green3);border-radius:50%;flex-shrink:0}
+@keyframes mqr{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+.sec{padding:7rem 5.5vw}
+.si{max-width:1180px;margin:0 auto}
+.stag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:.7rem}
+.stitle{font-family:var(--fd);font-size:clamp(2rem,3.8vw,3.2rem);font-weight:900;color:var(--earth);line-height:1.1;letter-spacing:-.025em;margin-bottom:.9rem}
+.stitle em{font-style:italic;color:var(--green)}
+.slead{font-size:1rem;color:var(--mid);line-height:1.75;font-weight:300;max-width:500px}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s,transform .7s}
+.reveal.vis{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}.d5{transition-delay:.4s}
+
+#quotes{background:var(--cream)}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.4rem;margin-top:3.5rem}
+.qcard{background:var(--white);border-radius:var(--r-lg);padding:2.4rem 2rem;border:1px solid var(--cream3);position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s;cursor:default}
+.qcard:hover{transform:translateY(-5px);box-shadow:0 14px 44px rgba(45,106,79,.1)}
+.qcard::before{content:'"';position:absolute;top:-.8rem;left:1rem;font-family:var(--fd);font-size:7.5rem;color:var(--green4);opacity:.12;line-height:1;pointer-events:none}
+.qcard p{font-family:var(--fd);font-style:italic;font-size:1.06rem;color:var(--earth);line-height:1.65;margin-bottom:1.1rem;position:relative;z-index:1}
+.qcard .attr{font-size:.76rem;font-weight:700;color:var(--green);letter-spacing:.05em;text-transform:uppercase}
+.qcard .qblob{position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:var(--green4);opacity:.07}
+.qcard.dark{background:var(--earth);border-color:var(--earth)}
+.qcard.dark p{color:var(--gold2)}
+.qcard.dark .attr{color:var(--green4)}
+.qcard.dark::before{color:var(--green3);opacity:.18}
+
+#how{background:var(--white)}
+.steps-only{display:flex;flex-direction:column;max-width:680px;margin-top:4rem}
+.step{display:flex;gap:1.4rem;align-items:flex-start;padding:1.7rem 0;border-bottom:1px solid var(--cream2);cursor:default;transition:all .2s}
+.step:last-child{border-bottom:none}
+.step:hover .step-ico{background:var(--green);color:#fff}
+.step-n{font-family:var(--fm);font-size:.7rem;font-weight:500;color:var(--muted);letter-spacing:.08em;margin-top:.25rem;min-width:26px;flex-shrink:0}
+.step-ico{width:48px;height:48px;border-radius:var(--r-md);background:var(--cream);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.35rem;transition:background .25s,color .25s}
+.step-body h3{font-family:var(--fd);font-size:1.15rem;font-weight:700;color:var(--earth);margin-bottom:.35rem}
+.step-body p{font-size:.88rem;color:var(--mid);line-height:1.65;font-weight:300}
+
+#monitor{background:var(--earth);padding:7rem 5.5vw}
+#monitor .stag{color:rgba(255,255,255,.4)}
+#monitor .stitle{color:var(--gold2)}
+#monitor .slead{color:rgba(255,255,255,.5)}
+.live-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(82,183,136,.12);border:1px solid rgba(82,183,136,.28);border-radius:var(--r-pill);padding:.32rem .9rem;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green4);margin-bottom:1.4rem}
+.live-badge .dot{width:7px;height:7px;background:var(--green3);border-radius:50%;animation:bl 1.6s ease-in-out infinite}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:3rem}
+.bcard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-lg);padding:2rem 1.5rem;text-align:center;transition:background .3s,border-color .3s}
+.bcard:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.13)}
+.bloc{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--green3);font-weight:700;margin-bottom:1.4rem}
+.btube{width:54px;height:88px;border-radius:7px 7px 13px 13px;border:2px solid rgba(255,255,255,.13);margin:0 auto 1.1rem;position:relative;overflow:hidden;background:rgba(0,0,0,.28)}
+.bcap{position:absolute;top:-6px;left:-4px;right:-4px;height:10px;border-radius:4px 4px 0 0;background:rgba(255,255,255,.1)}
+.bfill{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 11px 11px;transition:height 1.8s cubic-bezier(.34,1.56,.64,1)}
+.bpct{font-family:var(--fd);font-size:1.75rem;font-weight:900;line-height:1}
+.bstat{font-size:.73rem;margin-top:.25rem;font-weight:600;letter-spacing:.04em}
+.btype{font-size:.7rem;color:rgba(255,255,255,.3);margin-top:.75rem;text-transform:uppercase;letter-spacing:.06em}
+.sok{color:var(--green4)}.swarn{color:#f59e0b}.sfull{color:#ef4444}
+.fok{background:linear-gradient(to top,#2d6a4f,#52b788)}.fwarn{background:linear-gradient(to top,#92400e,#f59e0b)}.ffull{background:linear-gradient(to top,#991b1b,#ef4444)}
+.mfoot{margin-top:2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.mnote{font-size:.78rem;color:rgba(255,255,255,.3);font-weight:300}
+.mtime{font-family:var(--fm);font-size:.7rem;color:rgba(255,255,255,.28);letter-spacing:.05em}
+
+#rewards{background:var(--cream)}
+.rew-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start;margin-top:4rem}
+.pts-card-wrap{position:relative;margin-bottom:1.4rem}
+.pts-card{background:var(--white);border-radius:var(--r-xl);padding:2.8rem 2.2rem;border:1px solid var(--cream3)}
+.pts-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+.pts-lbl{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pts-badge{background:var(--green);color:#fff;border-radius:var(--r-pill);padding:.28rem .85rem;font-size:.7rem;font-weight:700}
+.pts-num{font-family:var(--fd);font-size:3.8rem;font-weight:900;color:var(--earth);line-height:1;letter-spacing:-.04em}
+.pts-sub{font-size:.82rem;color:var(--muted);margin-top:.25rem;font-weight:300}
+.pts-bar-wrap{margin-top:1.8rem}
+.pts-bar-labels{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:.5rem}
+.pts-track{height:7px;background:var(--cream2);border-radius:999px;overflow:hidden}
+.pts-fill{height:100%;background:linear-gradient(to right,var(--green),var(--green3));border-radius:999px;width:0;transition:width 1.6s .5s ease-out}
+.pts-next{font-size:.76rem;color:var(--mid);margin-top:.65rem;font-weight:300}
+/* lock overlay */
+.pts-lock{position:absolute;inset:0;background:rgba(245,240,232,.88);border-radius:var(--r-xl);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;backdrop-filter:blur(3px);z-index:2}
+.pts-lock p{font-size:.86rem;color:var(--mid);text-align:center;max-width:200px;line-height:1.5;font-weight:300}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.vc{background:var(--white);border-radius:var(--r-md);padding:1.5rem;border:1px solid var(--cream3);position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s;cursor:pointer}
+.vc:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(45,106,79,.1)}
+.vc.locked{opacity:.55;cursor:default}
+.vc.locked:hover{transform:none;box-shadow:none}
+.vc-ico{font-size:1.8rem;margin-bottom:.65rem}
+.vc-name{font-size:.88rem;font-weight:600;color:var(--earth);margin-bottom:.15rem}
+.vc-pts{font-size:.76rem;color:var(--green);font-weight:500;font-family:var(--fm)}
+.vc-lock{position:absolute;top:.8rem;right:.8rem;font-size:.68rem;font-weight:600;background:var(--cream);color:var(--muted);border-radius:var(--r-pill);padding:.18rem .6rem}
+.vc.unlocked .vc-lock{color:var(--green);background:rgba(82,183,136,.12)}
+.vc-stripe{position:absolute;bottom:0;left:0;right:0;height:3px}
+.sg{background:linear-gradient(to right,var(--green),var(--green3))}.sa{background:linear-gradient(to right,var(--gold),var(--gold2))}
+.tiers{display:flex;flex-direction:column;gap:1.1rem;margin-top:1.5rem}
+.tier{display:flex;align-items:center;gap:1.3rem;padding:1.4rem;background:var(--white);border-radius:var(--r-md);border:1px solid var(--cream3);transition:transform .2s,border-color .2s}
+.tier:hover{transform:translateX(4px);border-color:var(--green3)}
+.tier.cur{border-color:var(--green);background:rgba(45,106,79,.02)}
+.tier-ico{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+.tg{background:rgba(82,183,136,.14)}.ta{background:rgba(201,150,58,.14)}.tp{background:rgba(148,163,184,.14)}
+.tier-info h4{font-size:.92rem;font-weight:600;color:var(--earth);margin-bottom:.18rem}
+.tier-info p{font-size:.78rem;color:var(--muted);line-height:1.5;font-weight:300}
+.tier-pts{margin-left:auto;font-family:var(--fm);font-size:.7rem;color:var(--green);background:rgba(82,183,136,.1);border-radius:var(--r-pill);padding:.28rem .65rem;white-space:nowrap;flex-shrink:0}
+
+#impact{background:var(--green);padding:6rem 5.5vw;position:relative;overflow:hidden}
+#impact::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 15% 50%,rgba(255,255,255,.07) 0%,transparent 55%),radial-gradient(ellipse at 85% 20%,rgba(255,255,255,.05) 0%,transparent 50%);pointer-events:none}
+#impact .stag{color:rgba(255,255,255,.45)}
+#impact .stitle{color:#fff}
+#impact .slead{color:rgba(255,255,255,.55)}
+.igrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1.4rem;margin-top:4rem}
+.icard{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:var(--r-lg);padding:2.4rem 1.5rem;text-align:center;transition:background .3s}
+.icard:hover{background:rgba(255,255,255,.16)}
+.icard .iico{font-size:1.9rem;margin-bottom:.7rem}
+.icard .inum{font-family:var(--fd);font-size:clamp(2.4rem,4vw,3.6rem);font-weight:900;color:#fff;line-height:1;letter-spacing:-.04em}
+.icard .iunit{font-size:1.3rem;font-weight:900;color:rgba(255,255,255,.65)}
+.icard .ilbl{font-size:.76rem;color:rgba(255,255,255,.55);margin-top:.55rem;text-transform:uppercase;letter-spacing:.08em}
+
+#about{background:var(--white);padding:7rem 5.5vw}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:start;margin-top:4rem}
+.about-text p{font-size:.97rem;color:var(--mid);line-height:1.8;font-weight:300;margin-bottom:1rem}
+.about-text strong{color:var(--earth);font-weight:600}
+.vals{display:flex;flex-direction:column;gap:.9rem;margin-top:2rem}
+.val{display:flex;align-items:flex-start;gap:1rem;padding:1.2rem;background:var(--cream);border-radius:var(--r-md)}
+.val-ico{font-size:1.25rem;flex-shrink:0;margin-top:.05rem}
+.val h4{font-size:.9rem;font-weight:600;color:var(--earth);margin-bottom:.18rem}
+.val p{font-size:.8rem;color:var(--muted);line-height:1.55;font-weight:300}
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+.tc{background:var(--cream);border-radius:var(--r-lg);padding:1.8rem 1.4rem;text-align:center;transition:transform .2s}
+.tc:hover{transform:translateY(-3px)}
+.av{width:68px;height:68px;border-radius:50%;margin:0 auto .9rem;font-size:1.5rem;display:flex;align-items:center;justify-content:center;background:var(--cream3);border:2px solid var(--white)}
+.tc-name{font-size:.9rem;font-weight:600;color:var(--earth);margin-bottom:.15rem}
+.tc-role{font-size:.76rem;color:var(--muted);font-weight:300}
+.tc-tag{display:inline-block;margin-top:.55rem;font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(45,106,79,.1);color:var(--green);border-radius:var(--r-pill);padding:.18rem .65rem}
+.bcu-note{background:var(--cream);border-radius:var(--r-lg);padding:1.8rem;border:1px solid var(--cream3);margin-top:1.4rem}
+.bcu-note p{font-size:.88rem;color:var(--mid);line-height:1.75;font-weight:300}
+.bcu-note strong{color:var(--earth);font-weight:600}
+
+#locations{background:var(--cream);padding:7rem 5.5vw}
+.loc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;margin-top:4rem}
+.loc-card{background:var(--white);border-radius:var(--r-xl);padding:2.3rem;border:1px solid var(--cream3);margin-bottom:1.2rem}
+.loc-head{display:flex;align-items:center;gap:1rem;margin-bottom:1.4rem}
+.loc-ico{width:50px;height:50px;border-radius:var(--r-md);background:rgba(45,106,79,.08);display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0}
+.loc-head h3{font-size:1rem;font-weight:700;color:var(--earth);margin-bottom:.12rem}
+.loc-head p{font-size:.78rem;color:var(--muted);font-weight:300}
+.loc-rows{display:flex;flex-direction:column;gap:.6rem}
+.loc-row{display:flex;align-items:center;gap:.75rem;font-size:.82rem;color:var(--mid);font-weight:300}
+.loc-row strong{color:var(--earth);font-weight:500;min-width:75px;font-size:.8rem;flex-shrink:0}
+.lbadge{display:inline-block;font-size:.68rem;font-weight:700;padding:.18rem .65rem;border-radius:var(--r-pill)}
+.act{background:rgba(82,183,136,.14);color:var(--green2)}.com{background:rgba(201,150,58,.14);color:var(--gold)}
+.map-card{background:var(--earth);border-radius:var(--r-xl);min-height:380px;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:2.5rem}
+.map-bg{position:absolute;inset:0;pointer-events:none}
+.mgline{position:absolute;background:rgba(255,255,255,.04)}
+.mdot{position:absolute;width:13px;height:13px;background:var(--green3);border-radius:50%;border:2px solid rgba(255,255,255,.35);transform:translate(-50%,-50%);animation:mp 2s ease-in-out infinite}
+.mdot::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:1.5px solid var(--green3);opacity:0;animation:mr 2s ease-out infinite}
+.mdot.gold-dot{background:var(--gold);border-color:rgba(201,150,58,.35)}
+.mdot.gold-dot::after{border-color:var(--gold)}
+.mdot:nth-child(4){animation-delay:.8s}.mdot:nth-child(4)::after{animation-delay:.8s}
+.mdot:nth-child(5){animation-delay:1.5s}.mdot:nth-child(5)::after{animation-delay:1.5s}
+@keyframes mp{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.18)}}
+@keyframes mr{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
+.map-top{position:relative;z-index:1;color:#fff}
+.map-top h3{font-family:var(--fd);font-size:1.4rem;font-weight:900;margin-bottom:.3rem}
+.map-top p{font-size:.8rem;color:rgba(255,255,255,.45);font-weight:300}
+.map-addr{position:relative;z-index:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-md);padding:1.2rem 1.4rem}
+.map-addr p{font-size:.82rem;color:rgba(255,255,255,.65);line-height:1.65;font-weight:300}
+.map-addr strong{color:#fff;font-weight:500}
+
+#support{background:var(--white);padding:7rem 5.5vw}
+.sup-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;margin-top:4rem}
+.faq-list{display:flex;flex-direction:column;gap:.75rem}
+.fi{background:var(--cream);border-radius:var(--r-md);border:1px solid var(--cream3);overflow:hidden}
+.fq{display:flex;align-items:center;justify-content:space-between;padding:1.15rem 1.4rem;cursor:pointer;font-size:.9rem;font-weight:500;color:var(--earth);gap:1rem;user-select:none}
+.fq-ico{width:22px;height:22px;border-radius:50%;background:var(--cream3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.75rem;transition:background .2s,transform .2s;color:var(--mid);font-style:normal}
+.fi.open .fq-ico{background:var(--green);color:#fff;transform:rotate(45deg)}
+.fa{display:none;padding:0 1.4rem 1.15rem;font-size:.85rem;color:var(--mid);line-height:1.65;font-weight:300}
+.fi.open .fa{display:block}
+.scards{display:flex;flex-direction:column;gap:1rem}
+.sc{display:flex;align-items:flex-start;gap:1.1rem;background:var(--cream);border-radius:var(--r-md);padding:1.4rem;border:1px solid var(--cream3);text-decoration:none;transition:transform .2s,border-color .2s}
+.sc:hover{transform:translateX(4px);border-color:var(--green3)}
+.sc-ico{width:42px;height:42px;border-radius:var(--r-sm);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;border:1px solid var(--cream3)}
+.sc-text h4{font-size:.9rem;font-weight:600;color:var(--earth);margin-bottom:.18rem}
+.sc-text p{font-size:.8rem;color:var(--muted);line-height:1.5;font-weight:300}
+.sc-arr{margin-left:auto;color:var(--muted);font-size:1rem;align-self:center;flex-shrink:0}
+
+#cta{background:var(--cream);padding:5rem 5.5vw}
+.cta-inner{max-width:1000px;margin:0 auto;background:var(--earth);border-radius:var(--r-xl);padding:4rem;position:relative;overflow:hidden}
+.cta-inner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 8% 50%,rgba(82,183,136,.13) 0%,transparent 50%);pointer-events:none}
+.cta-txt{position:relative;z-index:1}
+.cta-txt h2{font-family:var(--fd);font-size:clamp(1.8rem,3vw,2.5rem);font-weight:900;color:#fff;line-height:1.15;margin-bottom:.7rem;letter-spacing:-.025em}
+.cta-txt h2 em{font-style:italic;color:var(--green3)}
+.cta-txt p{font-size:.92rem;color:rgba(255,255,255,.48);font-weight:300;line-height:1.65;max-width:380px;margin-bottom:1.4rem}
+.cta-btns{display:flex;gap:.7rem;flex-wrap:wrap}
+.btn-cg{background:var(--green);color:#fff;padding:.72rem 1.7rem;border-radius:var(--r-pill);font-size:.86rem;font-weight:600;cursor:pointer;border:none;font-family:var(--fb);transition:background .2s,transform .2s;display:inline-flex;align-items:center;gap:.4rem}
+.btn-cg:hover{background:var(--green2);transform:translateY(-2px)}
+.btn-co{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);padding:.72rem 1.7rem;border-radius:var(--r-pill);font-size:.86rem;font-weight:500;border:1px solid rgba(255,255,255,.12);cursor:pointer;font-family:var(--fb);transition:background .2s,transform .2s}
+.btn-co:hover{background:rgba(255,255,255,.13);transform:translateY(-2px)}
+.qr-wrap{position:relative;z-index:1;background:var(--white);border-radius:var(--r-lg);padding:1.4rem;display:flex;flex-direction:column;align-items:center;gap:.6rem;flex-shrink:0}
+.qr-wrap span{font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600;text-align:center;max-width:130px}
+.qr-wrap img{border-radius:8px;width:120px;height:120px;background:var(--cream);padding:4px}
+
+footer{background:var(--earth2);color:rgba(255,255,255,.55);padding:5rem 5.5vw 2.5rem}
+.ft{max-width:1180px;margin:0 auto}
+.ftop{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:4rem}
+.fbrand .flogo{font-family:var(--fd);font-size:1.75rem;font-weight:900;color:var(--gold2);letter-spacing:-.03em;margin-bottom:.7rem}
+.fbrand .flogo span{color:var(--green3)}
+.fbrand p{font-size:.82rem;line-height:1.7;font-weight:300;max-width:230px;margin-bottom:1.4rem}
+.fci{display:flex;align-items:flex-start;gap:.65rem;font-size:.8rem;margin-bottom:.65rem;line-height:1.5}
+.fci i{flex-shrink:0;margin-top:.1rem;opacity:.55;font-style:normal}
+.fcol h4{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:1.1rem}
+.fcol a{display:block;font-size:.82rem;color:rgba(255,255,255,.5);text-decoration:none;margin-bottom:.65rem;transition:color .2s;font-weight:300}
+.fcol a:hover{color:var(--green4)}
+.fbot{border-top:1px solid rgba(255,255,255,.07);padding-top:1.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.fbot p{font-size:.75rem;font-weight:300;color:rgba(255,255,255,.28)}
+.fbadges{display:flex;gap:.7rem;flex-wrap:wrap}
+.fbadge{font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid rgba(255,255,255,.1);border-radius:var(--r-pill);padding:.22rem .65rem;color:rgba(255,255,255,.28)}
+
+@media(max-width:1024px){
+  .rew-grid,.about-grid,.loc-grid,.sup-grid{grid-template-columns:1fr;gap:3rem}
+  .cta-inner{text-align:center}
+  .cta-txt p{max-width:100%;margin-left:auto;margin-right:auto}
+  .cta-btns{justify-content:center}
+  .ftop{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  #hero{grid-template-columns:1fr}
+  .hero-r{display:none}
+  .hero-l{min-height:100svh;border-right:none;padding:5rem 5.5vw}
+  .nav-pill,.nav-auth-out .btn-no{display:none}
+  .burger{display:flex}
+  .sec{padding:5rem 5vw}
+  #monitor,#impact,#about,#locations,#support{padding:5rem 5vw}
+  #cta{padding:3rem 5vw}
+  footer{padding:4rem 5vw 2rem}
+  .ftop{grid-template-columns:1fr}
+  .bgrid{grid-template-columns:1fr 1fr}
+  .igrid{grid-template-columns:1fr 1fr}
+  .team-grid{grid-template-columns:1fr 1fr}
+  .vgrid{grid-template-columns:1fr 1fr}
+  .cta-inner{padding:2.5rem 2rem}
+  .h1{font-size:clamp(2.8rem,12vw,5rem)}
+  .nav-auth-in .nav-pts span:not(.dot){display:none}
+}
+@media(max-width:480px){
+  .bgrid,.igrid,.vgrid{grid-template-columns:1fr}
+  .team-grid{grid-template-columns:1fr}
+  .hstats{gap:1.5rem}
+  .qgrid{grid-template-columns:1fr}
+  .fbot{flex-direction:column;text-align:center}
+  .h1{font-size:clamp(2.5rem,11vw,3.8rem)}
+  .modal{padding:2rem 1.5rem}
+  .dash-modal{padding:1.8rem 1.4rem}
+  .dash-head{flex-wrap:wrap;gap:.8rem}
+  .dash-pts-block{margin-left:0;text-align:left}
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ══ AUTH MODAL ══ -->
+<div class="overlay" id="authOverlay">
+  <div class="modal" id="authModal">
+    <button class="modal-x" onclick="closeAuthModal()">✕</button>
+    <div class="modal-logo">Trash<span>E</span></div>
+
+    <!-- LOGIN -->
+    <div id="fLogin">
+      <h2>Welcome back</h2>
+      <p class="sub">Log in to track your points &amp; history</p>
+      <div class="fg"><label>Email</label><input type="email" id="lEmail" placeholder="your@bcu.ac.uk"><div class="ferr" id="lErr"></div></div>
+      <div class="fg"><label>Password</label><input type="password" id="lPass" placeholder="••••••••"></div>
+      <button class="btn-submit" id="lBtn" onclick="doLogin()">Log In</button>
+      <div class="modal-sw">No account? <button onclick="switchAuth('signup')">Sign up free</button></div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="fSignup" style="display:none">
+      <h2>Join TrashE</h2>
+      <p class="sub">Create your account and start earning</p>
+      <div class="fg"><label>Full Name</label><input type="text" id="sName" placeholder="Alex Johnson"><div class="ferr" id="sNameErr"></div></div>
+      <div class="fg"><label>Email</label><input type="email" id="sEmail" placeholder="your@bcu.ac.uk"><div class="ferr" id="sEmailErr"></div></div>
+      <div class="fg"><label>Password</label><input type="password" id="sPass" placeholder="Min. 6 characters"><div class="ferr" id="sPassErr"></div></div>
+      <button class="btn-submit" id="sBtn" onclick="doSignup()">Create Account</button>
+      <div class="modal-sw">Have an account? <button onclick="switchAuth('login')">Log in</button></div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="modal-ok" id="fOk">
+      <div class="tick">✓</div>
+      <h3>You're in!</h3>
+      <p>Your TrashE account is ready. Start scanning bins to earn your first points.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD MODAL ══ -->
+<div class="overlay" id="dashOverlay">
+  <div class="modal dash-modal" id="dashModal">
+    <button class="modal-x" onclick="closeDash()">✕</button>
+    <div class="dash-head">
+      <div class="dash-av" id="dAv">?</div>
+      <div class="dash-info">
+        <div class="dash-name" id="dName">—</div>
+        <div class="dash-email" id="dEmail">—</div>
+        <div class="dash-tier-badge" id="dTier">🌱 Sprout</div>
+      </div>
+      <div class="dash-pts-block">
+        <div class="dash-pts-num" id="dPts">0</div>
+        <div class="dash-pts-lbl">Points</div>
+      </div>
+    </div>
+    <div class="dash-bar-wrap">
+      <div class="dash-bar-labels"><span id="dTierLbl">Sprout</span><span id="dNextLbl">Leaf — 500 pts</span></div>
+      <div class="dash-track"><div class="dash-fill" id="dFill" style="width:0%"></div></div>
+    </div>
+    <div class="dash-sec">Recent Activity</div>
+    <div class="hist-list" id="histList"><div class="hist-empty">No activity yet — start scanning a bin!</div></div>
+    <div class="dash-actions">
+      <button class="btn-dash-sim" onclick="simulateDisposal()">♻ Simulate Disposal (+10 pts)</button>
+      <button class="btn-dash-out" onclick="doLogout()">Log Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NAV ══ -->
+<nav id="nav">
+  <a class="nav-logo" href="#hero">Trash<span>E</span></a>
+  <ul class="nav-pill">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#monitor">Live Monitor</a></li>
+    <li><a href="#rewards">Rewards</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#support">Support</a></li>
+  </ul>
+  <div class="nav-r">
+    <div class="nav-auth-out" id="navOut">
+      <button class="btn-no" onclick="openAuthModal('login')">Log In</button>
+      <button class="btn-ns" onclick="openAuthModal('signup')">Sign Up</button>
+    </div>
+    <div class="nav-auth-in" id="navIn">
+      <div class="nav-pts" onclick="openDash()">
+        <span class="dot"></span><span id="navPtsNum">0</span>&nbsp;pts
+      </div>
+      <div class="nav-avatar" id="navAv" tabindex="0">
+        <span id="navInitial">?</span>
+        <div class="nav-drop">
+          <div class="nav-drop-email" id="navDropEmail">—</div>
+          <a onclick="openDash()">My Dashboard</a>
+          <hr>
+          <button class="logout-btn" onclick="doLogout()">Log Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mob-menu" id="mobMenu">
+  <a href="#how" onclick="closeMob()">How It Works</a>
+  <a href="#monitor" onclick="closeMob()">Live Monitor</a>
+  <a href="#rewards" onclick="closeMob()">Rewards</a>
+  <a href="#about" onclick="closeMob()">About Us</a>
+  <a href="#locations" onclick="closeMob()">Locations</a>
+  <a href="#support" onclick="closeMob()">Support &amp; FAQ</a>
+  <button onclick="openAuthModal('login');closeMob()">Log In</button>
+  <button class="mob-cta" onclick="openAuthModal('signup');closeMob()">Sign Up &amp; Start Earning →</button>
+</div>
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="hero-l">
+    <div class="ht"><span class="dot"></span>Smart Recycling — BCU Steamhouse</div>
+    <div class="hdivider"></div>
+    <h1 class="h1">EVERY BIN<br>YOU FILL<br><em>Counts.</em></h1>
+    <p class="hdesc">TrashE turns everyday recycling into real rewards.<br>Scan. Dispose correctly. Earn points. Track your campus impact.</p>
+    <div class="hbtns">
+      <button class="btn-s" onclick="openAuthModal('signup')">Create Account →</button>
+      <a href="#how" class="btn-g">How It Works</a>
+    </div>
+    <div class="hstats">
+      <div><div class="hs-num" data-count="2847">0</div><div class="hs-lbl">Items Recycled</div></div>
+      <div><div class="hs-num" data-count="342">0</div><div class="hs-lbl">Points Today</div></div>
+      <div><div class="hs-num" data-count="12">0</div><div class="hs-lbl">Active Bins</div></div>
+    </div>
+    <div class="hero-scroll"><div class="scroll-bar"></div><span class="scroll-lbl">Scroll</span></div>
+  </div>
+  <div class="hero-r">
+    <div class="hero-r-bg"></div>
+    <div class="hero-sphere-wrap">
+      <svg width="480" height="480" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="g1" cx="38%" cy="32%"><stop offset="0%" stop-color="#95d5b2"/><stop offset="45%" stop-color="#52b788"/><stop offset="100%" stop-color="#1b4332"/></radialGradient>
+          <radialGradient id="g2" cx="40%" cy="35%"><stop offset="0%" stop-color="#f0e8d0"/><stop offset="60%" stop-color="#d4c49a"/><stop offset="100%" stop-color="#a09060"/></radialGradient>
+          <radialGradient id="g3" cx="38%" cy="33%"><stop offset="0%" stop-color="#ffd980"/><stop offset="55%" stop-color="#c9963a"/><stop offset="100%" stop-color="#7c5c18"/></radialGradient>
+          <filter id="fs"><feDropShadow dx="0" dy="28" stdDeviation="28" flood-color="rgba(0,0,0,.22)"/></filter>
+        </defs>
+        <ellipse cx="250" cy="462" rx="135" ry="20" fill="rgba(0,0,0,.15)"/>
+        <g filter="url(#fs)">
+          <polygon points="250,72 348,158 250,218" fill="url(#g2)" opacity=".52"/>
+          <polygon points="250,72 152,158 250,218" fill="url(#g1)" opacity=".65"/>
+          <polygon points="152,158 250,218 152,298" fill="url(#g1)" opacity=".82"/>
+          <polygon points="348,158 250,218 348,298" fill="url(#g3)" opacity=".88"/>
+          <polygon points="250,218 152,298 250,362" fill="url(#g3)" opacity=".92"/>
+          <polygon points="250,218 348,298 250,362" fill="url(#g2)" opacity=".72"/>
+          <polygon points="152,298 250,362 195,418" fill="url(#g1)" opacity=".78"/>
+          <polygon points="348,298 250,362 305,418" fill="url(#g2)" opacity=".62"/>
+          <polygon points="195,418 250,362 305,418" fill="url(#g3)" opacity=".85"/>
+          <g stroke="rgba(255,255,255,.28)" stroke-width="1.2" fill="none">
+            <line x1="250" y1="72" x2="348" y2="158"/><line x1="250" y1="72" x2="152" y2="158"/>
+            <line x1="348" y1="158" x2="250" y2="218"/><line x1="152" y1="158" x2="250" y2="218"/>
+            <line x1="152" y1="158" x2="152" y2="298"/><line x1="348" y1="158" x2="348" y2="298"/>
+            <line x1="152" y1="298" x2="250" y2="362"/><line x1="348" y1="298" x2="250" y2="362"/>
+            <line x1="250" y1="218" x2="152" y2="298"/><line x1="250" y1="218" x2="348" y2="298"/>
+            <line x1="250" y1="362" x2="195" y2="418"/><line x1="250" y1="362" x2="305" y2="418"/>
+            <line x1="195" y1="418" x2="305" y2="418"/>
+          </g>
+          <text x="250" y="278" font-size="32" text-anchor="middle" fill="rgba(255,255,255,.45)">♻</text>
+        </g>
+      </svg>
+    </div>
+    <div class="hero-r-lbl">TrashE Smart Bin System — BCU 2025</div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div id="mq"><div class="mq-inner" id="mqInner"></div></div>
+
+<!-- QUOTES -->
+<section id="quotes" class="sec">
+  <div class="si">
+    <div class="reveal"><span class="stag">Why It Matters</span><h2 class="stitle">Words that <em>move</em> us</h2><p class="slead">Recycling isn't just a habit — it's a statement. Every piece of waste disposed correctly is a vote for the world you want to live in.</p></div>
+    <div class="qgrid">
+      <div class="qcard reveal d1"><p>"We do not inherit the earth from our ancestors; we borrow it from our children."</p><span class="attr">— Antoine de Saint-Exupéry</span><div class="qblob"></div></div>
+      <div class="qcard dark reveal d2"><p>"The greatest threat to our planet is the belief that someone else will save it."</p><span class="attr">— Robert Swan</span><div class="qblob"></div></div>
+      <div class="qcard reveal d3"><p>"Small acts, when multiplied by millions of people, can transform the world."</p><span class="attr">— Howard Zinn</span><div class="qblob"></div></div>
+      <div class="qcard reveal d4"><p>"In every walk with nature, one receives far more than one seeks."</p><span class="attr">— John Muir</span><div class="qblob"></div></div>
+      <div class="qcard dark reveal d5"><p>"What we are doing to the forests of the world is a mirror reflection of what we are doing to ourselves."</p><span class="attr">— Mahatma Gandhi</span><div class="qblob"></div></div>
+      <div class="qcard reveal d1"><p>"The environment is where we all meet; where we all have a mutual interest — it is the one thing all of us share."</p><span class="attr">— Lady Bird Johnson</span><div class="qblob"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS — steps only, no sticky visual -->
+<section id="how" class="sec" style="background:var(--white)">
+  <div class="si">
+    <div class="reveal"><span class="stag">The Process</span><h2 class="stitle">How <em>TrashE</em> works</h2><p class="slead">Smart recycling in four simple steps. Scan, sort, earn, and track — powered by BCU's intelligent bin network.</p></div>
+    <div class="steps-only">
+      <div class="step reveal d1"><span class="step-n">01</span><div class="step-ico">🔍</div><div class="step-body"><h3>Scan the QR Code</h3><p>Each TrashE bin has a unique QR code. Point your phone camera at it — no app needed. You're instantly linked to your personal rewards account.</p></div></div>
+      <div class="step reveal d2"><span class="step-n">02</span><div class="step-ico">♻️</div><div class="step-body"><h3>Sort &amp; Dispose Correctly</h3><p>Our smart sensor detects your item and verifies correct sorting — paper, plastic, glass, or general waste. Right bin, maximum points.</p></div></div>
+      <div class="step reveal d3"><span class="step-n">03</span><div class="step-ico">🎯</div><div class="step-body"><h3>Earn Points Instantly</h3><p>Points land in your account the moment your item is detected. Watch your balance grow with every correct disposal, every day.</p></div></div>
+      <div class="step reveal d4"><span class="step-n">04</span><div class="step-ico">📊</div><div class="step-body"><h3>Track Your Impact</h3><p>See live bin fill levels, your recycling history, community stats, and the environmental difference your campus is making together.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE MONITOR -->
+<section id="monitor">
+  <div class="si">
+    <div class="reveal"><div class="live-badge"><span class="dot"></span>Real-Time Data</div><h2 class="stitle">Live Bin <em>Monitor</em></h2><p class="slead">Every TrashE bin on campus is connected. Watch fill levels update in real time so bins never overflow.</p></div>
+    <div class="bgrid" id="bgrid"></div>
+    <div class="mfoot"><p class="mnote">Data refreshes every 30s. Alerts fire when bins exceed 85% capacity.</p><span class="mtime" id="mtime">Last updated: just now</span></div>
+  </div>
+</section>
+
+<!-- REWARDS -->
+<section id="rewards" class="sec">
+  <div class="si">
+    <div class="reveal"><span class="stag">Earn &amp; Redeem</span><h2 class="stitle">Real rewards for <em>real</em> recycling</h2><p class="slead">Every correctly disposed item earns you TrashE Points. Collect enough and redeem for coffee, vouchers, and exclusive campus perks.</p></div>
+    <div class="rew-grid">
+      <div>
+        <div class="pts-card-wrap reveal d1">
+          <div class="pts-card">
+            <div class="pts-top"><span class="pts-lbl">Your Points Balance</span><span class="pts-badge" id="tierBadge">🌱 Sprout Tier</span></div>
+            <div class="pts-num" id="pnum">0</div>
+            <div class="pts-sub">TrashE Points</div>
+            <div class="pts-bar-wrap">
+              <div class="pts-bar-labels"><span id="barFrom">Sprout</span><span id="barTo">Leaf — 500 pts</span></div>
+              <div class="pts-track"><div class="pts-fill" id="pfill"></div></div>
+              <p class="pts-next" id="ptsNext">Sign in to see your points balance 👆</p>
+            </div>
+          </div>
+          <div class="pts-lock" id="ptsLock">
+            <div style="font-size:2rem">🔒</div>
+            <p>Sign in to track your personal points balance</p>
+            <button class="btn-ns" onclick="openAuthModal('login')">Log In</button>
+          </div>
+        </div>
+        <div class="vgrid">
+          <div class="vc unlocked reveal d2"><div class="vc-ico">☕</div><div class="vc-name">Free Coffee</div><div class="vc-pts">250 pts</div><div class="vc-lock">✓ Unlocked</div><div class="vc-stripe sg"></div></div>
+          <div class="vc unlocked reveal d3"><div class="vc-ico">🥪</div><div class="vc-name">Meal Deal</div><div class="vc-pts">400 pts</div><div class="vc-lock">✓ Unlocked</div><div class="vc-stripe sg"></div></div>
+          <div class="vc locked reveal d4"><div class="vc-ico">🎓</div><div class="vc-name">Library Credit</div><div class="vc-pts">750 pts</div><div class="vc-lock">🔒 Locked</div><div class="vc-stripe sa"></div></div>
+          <div class="vc locked reveal d5"><div class="vc-ico">🛍️</div><div class="vc-name">Campus Store</div><div class="vc-pts">1,000 pts</div><div class="vc-lock">🔒 Locked</div><div class="vc-stripe sa"></div></div>
+        </div>
+      </div>
+      <div class="reveal d2">
+        <span class="stag">Membership Tiers</span>
+        <h3 style="font-family:var(--fd);font-size:1.55rem;font-weight:900;color:var(--earth);letter-spacing:-.02em;margin:.5rem 0">Grow your <em style="font-style:italic">status</em></h3>
+        <p style="font-size:.88rem;color:var(--mid);font-weight:300;line-height:1.65">The more you recycle, the higher your tier — and the better your rewards.</p>
+        <div class="tiers">
+          <div class="tier cur" id="t0"><div class="tier-ico tg">🌱</div><div class="tier-info"><h4>Sprout</h4><p>0–499 pts. Get started and earn your first coffee voucher within a week of recycling.</p></div><span class="tier-pts">0–499 pts</span></div>
+          <div class="tier" id="t1"><div class="tier-ico tg">🍃</div><div class="tier-info"><h4>Leaf</h4><p>500–1499 pts. Meal deals, bonus point days, and early access to new rewards.</p></div><span class="tier-pts">500–1499</span></div>
+          <div class="tier" id="t2"><div class="tier-ico ta">🌳</div><div class="tier-info"><h4>Tree</h4><p>1500–3999 pts. Priority redemption, partner vouchers, and 2× bonus weekends.</p></div><span class="tier-pts">1500–3999</span></div>
+          <div class="tier" id="t3"><div class="tier-ico tp">🌍</div><div class="tier-info"><h4>Champion</h4><p>4000+ pts. Custom merch, sustainability certificates, and leaderboard glory.</p></div><span class="tier-pts">4000+ pts</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section id="impact">
+  <div class="si">
+    <div class="reveal"><span class="stag">Our Collective Footprint</span><h2 class="stitle">The difference <em style="color:var(--green4)">we're</em> making</h2><p class="slead">Every TrashE interaction adds up. Here's the real impact the BCU community is creating together — one scan at a time.</p></div>
+    <div class="igrid">
+      <div class="icard reveal d1"><div class="iico">♻️</div><div class="inum"><span class="counter" data-target="12847">0</span></div><div class="ilbl">Items Recycled</div></div>
+      <div class="icard reveal d2"><div class="iico">🌱</div><div class="inum"><span class="counter" data-target="384">0</span><span class="iunit">kg</span></div><div class="ilbl">CO₂ Saved</div></div>
+      <div class="icard reveal d3"><div class="iico">💧</div><div class="inum"><span class="counter" data-target="2100">0</span><span class="iunit">L</span></div><div class="ilbl">Water Conserved</div></div>
+      <div class="icard reveal d4"><div class="iico">👥</div><div class="inum"><span class="counter" data-target="623">0</span></div><div class="ilbl">Active Users</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="si">
+    <div class="reveal"><span class="stag">About Us</span><h2 class="stitle">Built at <em>BCU</em>, for BCU</h2></div>
+    <div class="about-grid">
+      <div class="about-text reveal d1">
+        <p>TrashE was born in the halls of <strong>Birmingham City University's Steamhouse</strong> — a place built for bold ideas and innovative thinkers. We're a group of students who looked at overflowing bins on campus and thought: there has to be a smarter way.</p>
+        <p>So we built one. TrashE combines <strong>IoT sensor technology, QR-powered user identification, and a gamified rewards system</strong> to transform recycling into something people genuinely want to do.</p>
+        <p>Our mission is simple: make sustainability <strong>accessible, rewarding, and measurable</strong>. When people can see the real impact of their choices in real time, they make better ones.</p>
+        <p>TrashE is our contribution to a greener campus — and we don't plan to stop here.</p>
+        <div class="vals">
+          <div class="val"><span class="val-ico">🎯</span><div><h4>Our Mission</h4><p>Make recycling measurable, rewarding, and second nature for every student on campus.</p></div></div>
+          <div class="val"><span class="val-ico">🔬</span><div><h4>Our Approach</h4><p>Hardware meets software — smart sensors, live dashboards, and behavioural incentives working together.</p></div></div>
+          <div class="val"><span class="val-ico">🌍</span><div><h4>Our Vision</h4><p>Scale TrashE beyond BCU — into hospitals, shopping centres, and cities everywhere.</p></div></div>
+        </div>
+      </div>
+      <div class="reveal d3">
+        <div class="vals" style="margin-top:0">
+          <div class="val"><span class="val-ico">♻️</span><div><h4>Smart Sorting</h4><p>Our bins use sensors to detect item types and verify correct sorting — rewarding good habits in real time.</p></div></div>
+          <div class="val"><span class="val-ico">📡</span><div><h4>Always Connected</h4><p>Every bin reports its fill level live. Teams get alerted before bins overflow — keeping campus clean.</p></div></div>
+          <div class="val"><span class="val-ico">🏆</span><div><h4>Rewarding by Design</h4><p>Points, tiers, and vouchers make recycling feel less like a chore and more like a habit worth keeping.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATIONS -->
+<section id="locations">
+  <div class="si">
+    <div class="reveal"><span class="stag">Find a Bin</span><h2 class="stitle">TrashE <em>Locations</em></h2><p class="slead">Our smart bins are deployed across BCU Steamhouse, with more locations rolling out throughout 2025.</p></div>
+    <div class="loc-grid">
+      <div>
+        <div class="loc-card reveal d1">
+          <div class="loc-head"><div class="loc-ico">🏢</div><div><h3>Steamhouse — Ground Floor</h3><p>Main lobby entrance, near reception</p></div></div>
+          <div class="loc-rows">
+            <div class="loc-row"><strong>Status</strong><span class="lbadge act">● Active</span></div>
+            <div class="loc-row"><strong>Bin Types</strong><span>Paper · Plastic · General</span></div>
+            <div class="loc-row"><strong>Hours</strong><span>Mon–Fri 7am–10pm, Sat 9am–6pm</span></div>
+            <div class="loc-row"><strong>Capacity</strong><span>Currently at 38% — plenty of space</span></div>
+          </div>
+        </div>
+        <div class="loc-card reveal d2">
+          <div class="loc-head"><div class="loc-ico">☕</div><div><h3>Steamhouse — Café Area</h3><p>Adjacent to the coffee bar, 1st floor</p></div></div>
+          <div class="loc-rows">
+            <div class="loc-row"><strong>Status</strong><span class="lbadge act">● Active</span></div>
+            <div class="loc-row"><strong>Bin Types</strong><span>Cups · Plastic · Food Waste</span></div>
+            <div class="loc-row"><strong>Hours</strong><span>Mon–Fri 8am–8pm</span></div>
+            <div class="loc-row"><strong>Capacity</strong><span>Currently at 71% — filling up</span></div>
+          </div>
+        </div>
+        <div class="loc-card reveal d3">
+          <div class="loc-head"><div class="loc-ico">🎓</div><div><h3>BCU Main Campus</h3><p>Curzon Building &amp; City North</p></div></div>
+          <div class="loc-rows">
+            <div class="loc-row"><strong>Status</strong><span class="lbadge com">◌ Coming Soon</span></div>
+            <div class="loc-row"><strong>Launch</strong><span>Autumn 2025</span></div>
+            <div class="loc-row"><strong>Planned</strong><span>6 units across 3 buildings</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="map-card reveal d2">
+        <div class="map-bg">
+          <div class="mgline" style="top:25%;left:0;right:0;height:1px"></div>
+          <div class="mgline" style="top:50%;left:0;right:0;height:1px"></div>
+          <div class="mgline" style="top:75%;left:0;right:0;height:1px"></div>
+          <div class="mgline" style="left:33%;top:0;bottom:0;width:1px"></div>
+          <div class="mgline" style="left:66%;top:0;bottom:0;width:1px"></div>
+          <div class="mdot" style="left:45%;top:40%"></div>
+          <div class="mdot" style="left:58%;top:54%"></div>
+          <div class="mdot gold-dot" style="left:32%;top:62%"></div>
+        </div>
+        <div class="map-top"><h3>BCU Steamhouse</h3><p>Birmingham City University</p></div>
+        <div class="map-addr"><p><strong>Steamhouse, Birmingham City University</strong><br>Millennium Point, Curzon Street<br>Birmingham, B4 7XG<br>United Kingdom</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUPPORT -->
+<section id="support">
+  <div class="si">
+    <div class="reveal"><span class="stag">Help &amp; Support</span><h2 class="stitle">We're here to <em>help</em></h2><p class="slead">Got a question? Can't find your points? Bin not scanning? Our help centre has you covered.</p></div>
+    <div class="sup-grid">
+      <div>
+        <h3 style="font-family:var(--fd);font-size:1.25rem;font-weight:700;color:var(--earth);margin-bottom:1.4rem;letter-spacing:-.01em">Frequently Asked <em style="font-style:italic">Questions</em></h3>
+        <div class="faq-list reveal d1">
+          <div class="fi"><div class="fq">How do I create a TrashE account?<i class="fq-ico">+</i></div><div class="fa">Click "Sign Up" in the top navigation, enter your name, BCU email, and a password. Your account is created instantly and your points are stored securely — accessible from any device, anywhere.</div></div>
+          <div class="fi"><div class="fq">My scan didn't register — what do I do?<i class="fq-ico">+</i></div><div class="fa">Ensure you're within 10cm of the QR code and your camera is focused. If it persists, email us at hello@trashe.co.uk and we'll credit your account within 24 hours.</div></div>
+          <div class="fi"><div class="fq">How many points do I earn per item?<i class="fq-ico">+</i></div><div class="fa">You earn 10 points per correctly sorted item, 15 points for harder-to-recycle materials like glass, and bonus points on double-point Fridays. Incorrect sorting still earns 2 points — we reward the effort, but correct sorting is key.</div></div>
+          <div class="fi"><div class="fq">How do I redeem my rewards?<i class="fq-ico">+</i></div><div class="fa">Log into your TrashE dashboard, go to the Rewards section, and tap 'Redeem' on any unlocked voucher. You'll receive a unique code to your BCU email, valid for 30 days at participating campus locations.</div></div>
+          <div class="fi"><div class="fq">Do points expire?<i class="fq-ico">+</i></div><div class="fa">Points are valid for 12 months from the date they're earned. You'll receive an email reminder 30 days before any points expire, giving you plenty of time to use them.</div></div>
+          <div class="fi"><div class="fq">Which items can I recycle in TrashE bins?<i class="fq-ico">+</i></div><div class="fa">TrashE bins accept paper and cardboard, plastic bottles and containers, glass bottles and jars, aluminium cans and tins, and general waste. Flatten cardboard and rinse containers for maximum sensor accuracy.</div></div>
+        </div>
+      </div>
+      <div class="reveal d2">
+        <h3 style="font-family:var(--fd);font-size:1.25rem;font-weight:700;color:var(--earth);margin-bottom:1.4rem;letter-spacing:-.01em">Contact &amp; <em style="font-style:italic">Resources</em></h3>
+        <div class="scards">
+          <a href="mailto:hello@trashe.co.uk" class="sc"><div class="sc-ico">✉️</div><div class="sc-text"><h4>Email Support</h4><p>hello@trashe.co.uk — we reply within 24 hours on weekdays</p></div><span class="sc-arr">→</span></a>
+          <a href="tel:+441215551234" class="sc"><div class="sc-ico">📞</div><div class="sc-text"><h4>Call Us</h4><p>+44 (0)121 555 1234 — Mon–Fri, 9am–5pm</p></div><span class="sc-arr">→</span></a>
+          <a href="#how" class="sc"><div class="sc-ico">📖</div><div class="sc-text"><h4>Getting Started Guide</h4><p>New to TrashE? Our step-by-step guide covers everything from first scan to first reward.</p></div><span class="sc-arr">→</span></a>
+          <a href="#rewards" class="sc"><div class="sc-ico">🎁</div><div class="sc-text"><h4>Rewards Help Centre</h4><p>Everything about points, tiers, vouchers, and how to redeem your rewards.</p></div><span class="sc-arr">→</span></a>
+          <a href="#monitor" class="sc"><div class="sc-ico">🗑️</div><div class="sc-text"><h4>Report a Bin Fault</h4><p>Faulty bin? We aim to fix all issues within 4 hours of a report.</p></div><span class="sc-arr">→</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" style="background:var(--cream);padding:5rem 5.5vw">
+  <div class="cta-inner reveal">
+    <div class="cta-txt">
+      <h2>Ready to start<br><em>earning?</em></h2>
+      <p>Create your free account in 30 seconds. No app needed — scan any bin, dispose correctly, and watch your rewards grow.</p>
+      <div class="cta-btns">
+        <button class="btn-cg" onclick="openAuthModal('signup')">Create Account →</button>
+        <button class="btn-co" onclick="openAuthModal('login')">Log In</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft">
+    <div class="ftop">
+      <div class="fbrand">
+        <div class="flogo">Trash<span>E</span></div>
+        <p>Smart bins for a smarter campus. Turning everyday recycling into real rewards and measurable community impact.</p>
+        <div class="fci"><i>✉</i><span>hello@trashe.co.uk</span></div>
+        <div class="fci"><i>📞</i><span>+44 (0)121 555 1234</span></div>
+        <div class="fci"><i>📍</i><span>Steamhouse, Curzon Street, Birmingham, B4 7XG</span></div>
+      </div>
+      <div class="fcol"><h4>Product</h4><a href="#how">How It Works</a><a href="#monitor">Live Monitor</a><a href="#rewards">Rewards</a><a href="#locations">Locations</a><a href="#cta">Scan &amp; Earn</a></div>
+      <div class="fcol"><h4>Company</h4><a href="#about">About Us</a><a href="#about">Our Team</a><a href="#impact">Community Impact</a><a href="#support">Partnerships</a><a href="#support">Press</a></div>
+      <div class="fcol"><h4>Support</h4><a href="#support">Help Centre</a><a href="#support">FAQ</a><a href="mailto:hello@trashe.co.uk">Contact Us</a><a href="#support">Report a Fault</a><a href="#support">Privacy Policy</a></div>
+    </div>
+    <div class="fbot">
+      <p>© 2025 TrashE — BCU Steamhouse Innovation Project. All rights reserved.</p>
+      <div class="fbadges"><span class="fbadge">BCU 2025</span><span class="fbadge">IoT Enabled</span><span class="fbadge">Zero Waste</span></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+
+const SB_URL = 'https://brqpnochywepkegsccqh.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJycXBub2NoeXdlcGtlZ3NjY3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTMwNDIsImV4cCI6MjA5NDU4OTA0Mn0.s3BXn9enzJp-I9j5CbSdU9P4rBhh-IETKmcKSwFbVdU';
+
+let sb = null;
+const SB_READY = SB_URL.startsWith('https://') && SB_KEY.length > 20;
+if (SB_READY) {
+  try { sb = supabase.createClient(SB_URL, SB_KEY); } catch(e) { console.warn('Supabase init failed', e); }
+} else {
+}
+
+let curUser = null, curProfile = null;
+
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+const navEl = document.getElementById('nav');
+window.addEventListener('scroll', () => navEl.classList.toggle('scrolled', scrollY > 40));
+const burger = document.getElementById('burger'), mob = document.getElementById('mobMenu');
+burger.addEventListener('click', () => { burger.classList.toggle('open'); mob.classList.toggle('open'); });
+function closeMob() { burger.classList.remove('open'); mob.classList.remove('open'); }
+
+document.getElementById('authOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeAuthModal(); });
+document.getElementById('dashOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeDash(); });
+
+function openAuthModal(mode) { document.getElementById('authOverlay').classList.add('open'); switchAuth(mode); }
+function closeAuthModal() { document.getElementById('authOverlay').classList.remove('open'); clearForms(); }
+function switchAuth(mode) {
+  document.getElementById('fLogin').style.display  = mode === 'login'  ? 'block' : 'none';
+  document.getElementById('fSignup').style.display = mode === 'signup' ? 'block' : 'none';
+  document.getElementById('fOk').style.display     = 'none';
+  clearForms();
+}
+function clearForms() {
+  document.querySelectorAll('.ferr').forEach(e => { e.textContent=''; e.classList.remove('show'); });
+  document.querySelectorAll('.fg input').forEach(i => i.classList.remove('err'));
+}
+function setLoad(id, on, label) {
+  const b = document.getElementById(id); b.disabled = on; b.textContent = on ? 'Please wait…' : label;
+}
+function showErr(id, msg) { const e = document.getElementById(id); e.textContent = msg; e.classList.add('show'); }
+
+async function doSignup() {
+  if (!sb) { showErr('sEmailErr', 'Backend not configured yet — see setup instructions.'); return; }
+  clearForms();
+  const name  = document.getElementById('sName').value.trim();
+  const email = document.getElementById('sEmail').value.trim();
+  const pass  = document.getElementById('sPass').value;
+  let ok = true;
+  if (!name)               { showErr('sNameErr','Please enter your name'); ok=false; }
+  if (!email.includes('@')) { showErr('sEmailErr','Please enter a valid email'); ok=false; }
+  if (pass.length < 6)     { showErr('sPassErr','Password must be at least 6 characters'); ok=false; }
+  if (!ok) return;
+
+  setLoad('sBtn', true, 'Create Account');
+  const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
+  setLoad('sBtn', false, 'Create Account');
+
+  if (error) { showErr('sEmailErr', error.message); return; }
+  if (data.user) {
+    await sb.from('profiles').upsert({ id: data.user.id, email, full_name: name, points: 0 });
+    await sb.from('points_history').insert({ user_id: data.user.id, type: 'earn', label: '🎉 Welcome to TrashE!', points: 0 });
+  }
+  document.getElementById('fSignup').style.display = 'none';
+  document.getElementById('fOk').style.display = 'flex';
+  setTimeout(closeAuthModal, 2400);
+}
+
+async function doLogin() {
+  if (!sb) { showErr('lErr', 'Backend not configured yet — see setup instructions.'); return; }
+  clearForms();
+  const email = document.getElementById('lEmail').value.trim();
+  const pass  = document.getElementById('lPass').value;
+  if (!email || !pass) { showErr('lErr','Please fill in both fields'); return; }
+
+  setLoad('lBtn', true, 'Log In');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  setLoad('lBtn', false, 'Log In');
+
+  if (error) { showErr('lErr', 'Incorrect email or password'); return; }
+  closeAuthModal();
+  toast('Welcome back! 👋', 'green');
+  await loadProfile(data.user);
+}
+
+async function doLogout() {
+  if (sb) await sb.auth.signOut();
+  curUser = null; curProfile = null;
+  document.getElementById('navOut').style.display = 'flex';
+  document.getElementById('navIn').style.display  = 'none';
+  document.getElementById('ptsLock').style.display = 'flex';
+  document.getElementById('pnum').textContent = '0';
+  document.getElementById('pfill').style.width = '0%';
+  document.getElementById('ptsNext').textContent = 'Sign in to see your points balance 👆';
+  closeDash();
+  toast('Logged out successfully');
+}
+
+const TIERS = [
+  { name:'🌱 Sprout', min:0,    max:499,      next:500,  nextName:'Leaf' },
+  { name:'🍃 Leaf',   min:500,  max:1499,     next:1500, nextName:'Tree' },
+  { name:'🌳 Tree',   min:1500, max:3999,     next:4000, nextName:'Champion' },
+  { name:'🌍 Champion', min:4000, max:Infinity, next:null, nextName:null },
+];
+function getTier(pts) { return TIERS.find(t => pts >= t.min && pts <= t.max) || TIERS[0]; }
+
+function updateRewardsUI(pts) {
+  const tier = getTier(pts);
+  const idx  = TIERS.indexOf(tier);
+  document.getElementById('pnum').textContent = pts.toLocaleString();
+  document.getElementById('tierBadge').textContent = tier.name + ' Tier';
+  document.getElementById('barFrom').textContent = tier.name.split(' ').slice(1).join(' ');
+  document.getElementById('barTo').textContent   = tier.next ? `${tier.nextName} — ${tier.next} pts` : 'Max Tier 🏆';
+  document.getElementById('pfill').style.width   = tier.next
+    ? Math.min(((pts - tier.min) / (tier.next - tier.min)) * 100, 100) + '%' : '100%';
+  document.getElementById('ptsNext').textContent  = tier.next
+    ? `${tier.next - pts} more points to reach ${tier.nextName} Tier`
+    : 'You\'ve reached Champion — the highest tier! 🏆';
+  ['t0','t1','t2','t3'].forEach((id,i) => document.getElementById(id).classList.toggle('cur', i === idx));
+}
+
+async function loadProfile(user) {
+  if (!sb) return;
+  curUser = user;
+  let { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  if (!profile) {
+    const np = { id: user.id, email: user.email, full_name: user.user_metadata?.full_name || '', points: 0 };
+    await sb.from('profiles').upsert(np);
+    profile = np;
+  }
+  curProfile = profile;
+  document.getElementById('navOut').style.display = 'none';
+  document.getElementById('navIn').style.display  = 'flex';
+  const init = (profile.full_name || profile.email || '?').charAt(0).toUpperCase();
+  document.getElementById('navInitial').textContent   = init;
+  document.getElementById('navDropEmail').textContent = profile.email;
+  document.getElementById('navPtsNum').textContent    = profile.points || 0;
+  document.getElementById('ptsLock').style.display    = 'none';
+  updateRewardsUI(profile.points || 0);
+}
+
+async function openDash() {
+  if (!curUser) { openAuthModal('login'); return; }
+  if (sb) {
+    const { data: p } = await sb.from('profiles').select('*').eq('id', curUser.id).single();
+    if (p) curProfile = p;
+  }
+  const pts  = curProfile?.points || 0;
+  const tier = getTier(pts);
+  const init = (curProfile?.full_name || curProfile?.email || '?').charAt(0).toUpperCase();
+
+  document.getElementById('dAv').textContent    = init;
+  document.getElementById('dName').textContent  = curProfile?.full_name || 'TrashE User';
+  document.getElementById('dEmail').textContent = curProfile?.email || '';
+  document.getElementById('dTier').textContent  = tier.name;
+  document.getElementById('dPts').textContent   = pts.toLocaleString();
+  document.getElementById('dTierLbl').textContent = tier.name.split(' ').slice(1).join(' ');
+  document.getElementById('dNextLbl').textContent = tier.next ? `${tier.nextName} — ${tier.next} pts` : 'Max Tier!';
+  setTimeout(() => {
+    document.getElementById('dFill').style.width = tier.next
+      ? Math.min(((pts - tier.min) / (tier.next - tier.min)) * 100, 100) + '%' : '100%';
+  }, 80);
+
+  await renderHistory();
+  document.getElementById('dashOverlay').classList.add('open');
+}
+function closeDash() { document.getElementById('dashOverlay').classList.remove('open'); }
+
+async function renderHistory() {
+  const list = document.getElementById('histList');
+  if (!curUser || !sb) { list.innerHTML = '<div class="hist-empty">No activity yet — start scanning a bin!</div>'; return; }
+  const { data } = await sb.from('points_history').select('*').eq('user_id', curUser.id).order('created_at', { ascending: false }).limit(20);
+  if (!data || data.length === 0) { list.innerHTML = '<div class="hist-empty">No activity yet — start scanning a bin!</div>'; return; }
+  list.innerHTML = data.map(h => `
+    <div class="hist-item">
+      <div class="hist-ico ${h.type}">${h.type === 'earn' ? '♻️' : '🎁'}</div>
+      <div class="hist-body">
+        <p>${h.label}</p>
+        <span>${new Date(h.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      <div class="hist-pts ${h.type}">${h.type === 'earn' ? '+' : '-'}${h.points} pts</div>
+    </div>`).join('');
+}
+
+const DROPS = [
+  {label:'Plastic bottle recycled',pts:10},
+  {label:'Paper & cardboard recycled',pts:10},
+  {label:'Glass bottle recycled',pts:15},
+  {label:'Aluminium can recycled',pts:10},
+  {label:'Coffee cup recycled',pts:12},
+];
+async function simulateDisposal() {
+  if (!curUser || !curProfile || !sb) return;
+  const pick   = DROPS[Math.floor(Math.random() * DROPS.length)];
+  const newPts = (curProfile.points || 0) + pick.pts;
+
+  await sb.from('profiles').update({ points: newPts }).eq('id', curUser.id);
+  await sb.from('points_history').insert({ user_id: curUser.id, type: 'earn', label: pick.label, points: pick.pts });
+
+  curProfile.points = newPts;
+  document.getElementById('navPtsNum').textContent = newPts;
+  updateRewardsUI(newPts);
+
+  const tier = getTier(newPts);
+  document.getElementById('dPts').textContent  = newPts.toLocaleString();
+  document.getElementById('dTier').textContent = tier.name;
+  document.getElementById('dFill').style.width = tier.next
+    ? Math.min(((newPts - tier.min) / (tier.next - tier.min)) * 100, 100) + '%' : '100%';
+  await renderHistory();
+  toast(`+${pick.pts} pts — ${pick.label} ♻️`, 'green');
+}
+
+if (sb) {
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) { await loadProfile(session.user); }
+    else {
+      curUser = null; curProfile = null;
+      document.getElementById('navOut').style.display = 'flex';
+      document.getElementById('navIn').style.display  = 'none';
+      document.getElementById('ptsLock').style.display = 'flex';
+    }
+  });
+}
+
+const quotes=['Recycling turns yesterday\'s trash into tomorrow\'s treasure','The earth does not belong to us — we belong to the earth','Every item recycled is a small act of love for the planet','Sustainability is not a trend — it\'s a responsibility','Think globally. Act locally. Recycle daily.','One bin at a time, we change the world','Your waste is someone else\'s resource','Small steps, enormous impact'];
+const mi = document.getElementById('mqInner');
+[...quotes,...quotes].forEach(q => { const d=document.createElement('div');d.className='mq-item';d.innerHTML=`<span class="mq-text">${q}</span><span class="mq-sep"></span>`;mi.appendChild(d); });
+
+const revEls = document.querySelectorAll('.reveal');
+const ro = new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting){x.target.classList.add('vis');ro.unobserve(x.target);} }), {threshold:.1});
+revEls.forEach(r => ro.observe(r));
+
+function animCount(el, target, dur=2000) {
+  let s=null; const fn=ts=>{if(!s)s=ts;const p=Math.min((ts-s)/dur,1);el.textContent=Math.floor(p*target).toLocaleString();if(p<1)requestAnimationFrame(fn);else el.textContent=target.toLocaleString();}; requestAnimationFrame(fn);
+}
+document.querySelectorAll('[data-count]').forEach(el => {
+  const ob=new IntersectionObserver(e=>{if(e[0].isIntersecting){setTimeout(()=>animCount(el,+el.dataset.count,1800),700);ob.unobserve(el);}},{threshold:.5}); ob.observe(el);
+});
+document.querySelectorAll('.counter').forEach(el => {
+  const ob=new IntersectionObserver(e=>{if(e[0].isIntersecting){animCount(el,+el.dataset.target,2200);ob.unobserve(el);}},{threshold:.3}); ob.observe(el);
+});
+
+const pb=document.getElementById('pfill'),pn=document.getElementById('pnum');
+if(pb){const o=new IntersectionObserver(e=>{if(e[0].isIntersecting&&!curUser){setTimeout(()=>{pb.style.width='46%';animCount(pn,231,1600)},400);o.unobserve(pb);}},{threshold:.3});o.observe(pb);}
+
+const bins=[
+  {loc:'Main Lobby',type:'Mixed Recycling',pct:38,status:'ok'},
+  {loc:'Café Area',type:'Cups & Plastic',pct:71,status:'warn'},
+  {loc:'Co-Work Space',type:'Paper & Card',pct:22,status:'ok'},
+  {loc:'Workshop Area',type:'General Waste',pct:91,status:'full'},
+  {loc:'Breakout Zone',type:'Plastic Bottles',pct:55,status:'ok'},
+  {loc:'Entry Hall',type:'Mixed Recycling',pct:16,status:'ok'},
+];
+const sL={ok:'Good',warn:'Filling Up',full:'Nearly Full'};
+const sC={ok:'sok',warn:'swarn',full:'sfull'};
+const fC={ok:'fok',warn:'fwarn',full:'ffull'};
+const grid=document.getElementById('bgrid');
+bins.forEach((b,i)=>{
+  const c=document.createElement('div');c.className='bcard reveal';c.style.transitionDelay=(i*.09)+'s';
+  c.innerHTML=`<div class="bloc">${b.loc}</div><div class="btube"><div class="bcap"></div><div class="bfill ${fC[b.status]}" id="bf${i}" style="height:0%"></div></div><div class="bpct ${sC[b.status]}" id="bp${i}">0%</div><div class="bstat ${sC[b.status]}">${sL[b.status]}</div><div class="btype">${b.type}</div>`;
+  grid.appendChild(c);ro.observe(c);
+});
+const bo=new IntersectionObserver(e=>{if(e[0].isIntersecting){bins.forEach((b,i)=>setTimeout(()=>{const f=document.getElementById('bf'+i),p=document.getElementById('bp'+i);if(f)f.style.height=b.pct+'%';let c=0;const iv=setInterval(()=>{if(c>=b.pct){clearInterval(iv);return}c++;if(p)p.textContent=c+'%'},18)},i*110));bo.unobserve(e[0].target);}},{threshold:.15});
+if(grid)bo.observe(grid);
+
+function upd(){const el=document.getElementById('mtime');if(el)el.textContent='Last updated: '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+upd();
+setInterval(()=>{upd();bins.forEach((b,i)=>{b.pct=Math.max(5,Math.min(99,b.pct+Math.floor(Math.random()*3)-1));const s=b.pct>=86?'full':b.pct>=60?'warn':'ok';b.status=s;const f=document.getElementById('bf'+i),p=document.getElementById('bp'+i);if(f){f.style.height=b.pct+'%';f.className='bfill '+fC[s]}if(p){p.textContent=b.pct+'%';p.className='bpct '+sC[s]}});},30000);
+
+document.querySelectorAll('.fq').forEach(q=>q.addEventListener('click',()=>{const fi=q.parentElement,was=fi.classList.contains('open');document.querySelectorAll('.fi').forEach(f=>f.classList.remove('open'));if(!was)fi.classList.add('open');}));
+
+</script>
+
+</body>
+</html>
