@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/56b2ca37-4897-4b7d-88a3-4adbd214a1e5
+
 # TrashE: AI-Powered Smart Recycling Bin
 
 🏆 **2nd Place, BCU Innovation Project Awards 2026**
